@@ -1,4 +1,5 @@
 import { useReducer } from "react";
+import { clsx } from "clsx";
 
 function App() {
   const [todos, dispatch] = useReducer(reducer, []);
@@ -24,14 +25,48 @@ function App() {
           <input type="submit" hidden />
         </form>
       </header>
+      <TodosList todos={todos} />
     </section>
+  );
+}
+
+function TodosList({ todos }) {
+  return (
+    <section className="main">
+      <input id="toggle-all" className="toggle-all" type="checkbox" />
+      <label htmlFor="toggle-all">Mark all as complete</label>
+      <ul className="todo-list">
+        {todos.map((todo) => (
+          <TodoItem todo={todo} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function TodoItem({ todo }) {
+  return (
+    <li className={clsx({ completed: todo.completed })}>
+      <div className="view">
+        <input className="toggle" type="checkbox" checked={todo.completed} />
+        <label>{todo.todo}</label>
+        <button className="destroy"></button>
+      </div>
+    </li>
   );
 }
 
 function reducer(state, action) {
   switch (action.type) {
     case "ADD_TODO": {
-      return [{ id: window.crypto.randomUUID(), todo: action.value }, ...state];
+      return [
+        {
+          id: window.crypto.randomUUID(),
+          todo: action.value,
+          completed: false,
+        },
+        ...state,
+      ];
     }
   }
 }
