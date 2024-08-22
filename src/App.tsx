@@ -9,12 +9,22 @@ function App() {
       type: "ADD_TODO",
       value: event.target.elements["new-todo"].value,
     });
-    event.target.reset()
+    event.target.reset();
   };
 
   const handleCompletedToggle = (id) => () => {
     return dispatch({ type: "TOGGLE_COMPLETED", id });
-  }
+  };
+
+  const handleToggleAll = () => {
+    return dispatch({ type: "TOGGLE_ALL" });
+  };
+
+  const todoListProps = {
+    todos,
+    onCompletedToggle: handleCompletedToggle,
+    onToggleAll: handleToggleAll,
+  };
 
   return (
     <section className="todoapp">
@@ -30,15 +40,20 @@ function App() {
           <input type="submit" hidden />
         </form>
       </header>
-      <TodosList todos={todos} onCompletedToggle={handleCompletedToggle} />
+      <TodosList {...todoListProps} />
     </section>
   );
 }
 
-function TodosList({ todos, onCompletedToggle }) {
+function TodosList({ todos, onCompletedToggle, onToggleAll }) {
   return (
     <section className="main">
-      <input id="toggle-all" className="toggle-all" type="checkbox" />
+      <input
+        id="toggle-all"
+        className="toggle-all"
+        type="checkbox"
+        onChange={onToggleAll}
+      />
       <label htmlFor="toggle-all">Mark all as complete</label>
       <ul className="todo-list">
         {todos.map((todo) => (
@@ -87,6 +102,11 @@ function reducer(todos, action) {
       return todos.map((todo) =>
         todo.id === action.id ? { ...todo, completed: !todo.completed } : todo
       );
+    }
+
+    case "TOGGLE_ALL": {
+      const completed = todos.some((todo) => !todo.completed);
+      return todos.map((todo) => ({ ...todo, completed }));
     }
   }
 }
