@@ -20,10 +20,15 @@ function App() {
     return dispatch({ type: "TOGGLE_ALL" });
   };
 
+  const handleDestroy = (id) => {
+    return dispatch({ type: "DESTROY", id });
+  };
+
   const todoListProps = {
     todos,
     onCompletedToggle: handleCompletedToggle,
     onToggleAll: handleToggleAll,
+    onDestroy: handleDestroy,
   };
 
   return (
@@ -45,7 +50,7 @@ function App() {
   );
 }
 
-function TodosList({ todos, onCompletedToggle, onToggleAll }) {
+function TodosList({ todos, onCompletedToggle, onToggleAll, onDestroy }) {
   return (
     <section className="main">
       <input
@@ -61,6 +66,7 @@ function TodosList({ todos, onCompletedToggle, onToggleAll }) {
             key={todo.id}
             todo={todo}
             onCompletedToggle={onCompletedToggle}
+            onDestory={onDestroy}
           />
         ))}
       </ul>
@@ -68,7 +74,7 @@ function TodosList({ todos, onCompletedToggle, onToggleAll }) {
   );
 }
 
-function TodoItem({ todo, onCompletedToggle }) {
+function TodoItem({ todo, onCompletedToggle, onDestory }) {
   return (
     <li className={clsx({ completed: todo.completed })}>
       <div className="view">
@@ -79,7 +85,7 @@ function TodoItem({ todo, onCompletedToggle }) {
           onChange={onCompletedToggle(todo.id)}
         />
         <label>{todo.todo}</label>
-        <button className="destroy"></button>
+        <button className="destroy" onClick={() => onDestory(todo.id)}></button>
       </div>
     </li>
   );
@@ -107,6 +113,10 @@ function reducer(todos, action) {
     case "TOGGLE_ALL": {
       const completed = todos.some((todo) => !todo.completed);
       return todos.map((todo) => ({ ...todo, completed }));
+    }
+
+    case "DESTROY": {
+      return todos.filter(todo => todo.id !== action.id)
     }
   }
 }
