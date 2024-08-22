@@ -5,11 +5,15 @@ function App() {
   const [todos, dispatch] = useReducer(reducer, []);
   const handleSubmit = (event) => {
     event.preventDefault();
-    dispatch({
-      type: "ADD_TODO",
-      value: event.target.elements["new-todo"].value,
-    });
-    event.target.reset();
+    const value = event.target.elements["new-todo"].value;
+    const valueTrimmed = value.trim();
+    if (valueTrimmed && valueTrimmed.length > 0) {
+      dispatch({
+        type: "ADD_TODO",
+        value: valueTrimmed,
+      });
+      event.target.reset();
+    }
   };
 
   const handleCompletedToggle = (id) => () => {
@@ -25,7 +29,11 @@ function App() {
   };
 
   const handleTodoEdit = (id, value) => {
-    return dispatch({ type: "EDIT_TODO", id, value });
+    const trimmedValue = value.trim();
+    if (trimmedValue === "") {
+      return dispatch({ type: "DESTROY", id });
+    }
+    return dispatch({ type: "EDIT_TODO", id, value: trimmedValue });
   };
 
   const todoListProps = {
@@ -137,12 +145,12 @@ function reducer(todos, action) {
   switch (action.type) {
     case "ADD_TODO": {
       return [
+        ...todos,
         {
           id: window.crypto.randomUUID(),
           todo: action.value,
           completed: false,
         },
-        ...todos,
       ];
     }
 
