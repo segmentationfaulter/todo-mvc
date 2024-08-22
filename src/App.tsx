@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { clsx } from "clsx";
 
 function App() {
@@ -24,11 +24,16 @@ function App() {
     return dispatch({ type: "DESTROY", id });
   };
 
+  const handleTodoEdit = (id) => (event) => {
+    return dispatch({ type: "EDIT_TODO", id, value: event.target.value });
+  };
+
   const todoListProps = {
     todos,
     onCompletedToggle: handleCompletedToggle,
     onToggleAll: handleToggleAll,
     onDestroy: handleDestroy,
+    onTodoEdit: handleTodoEdit,
   };
 
   return (
@@ -50,7 +55,13 @@ function App() {
   );
 }
 
-function TodosList({ todos, onCompletedToggle, onToggleAll, onDestroy }) {
+function TodosList({
+  todos,
+  onCompletedToggle,
+  onToggleAll,
+  onDestroy,
+  onTodoEdit,
+}) {
   return (
     <section className="main">
       <input
@@ -67,6 +78,7 @@ function TodosList({ todos, onCompletedToggle, onToggleAll, onDestroy }) {
             todo={todo}
             onCompletedToggle={onCompletedToggle}
             onDestory={onDestroy}
+            onTodoEdit={onTodoEdit}
           />
         ))}
       </ul>
@@ -74,9 +86,18 @@ function TodosList({ todos, onCompletedToggle, onToggleAll, onDestroy }) {
   );
 }
 
-function TodoItem({ todo, onCompletedToggle, onDestory }) {
+function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current.focus();
+    }
+  }, [editing]);
+
   return (
-    <li className={clsx({ completed: todo.completed })}>
+    <li className={clsx({ completed: todo.completed, editing })}>
       <div className="view">
         <input
           className="toggle"
@@ -84,9 +105,16 @@ function TodoItem({ todo, onCompletedToggle, onDestory }) {
           checked={todo.completed}
           onChange={onCompletedToggle(todo.id)}
         />
-        <label>{todo.todo}</label>
+        <label onDoubleClick={() => setEditing(true)}>{todo.todo}</label>
         <button className="destroy" onClick={() => onDestory(todo.id)}></button>
       </div>
+      <input
+        ref={inputRef}
+        className="edit"
+        value={todo.todo}
+        onChange={onTodoEdit(todo.id)}
+        onBlur={() => setEditing(false)}
+      />
     </li>
   );
 }
@@ -116,7 +144,13 @@ function reducer(todos, action) {
     }
 
     case "DESTROY": {
-      return todos.filter(todo => todo.id !== action.id)
+      return todos.filter((todo) => todo.id !== action.id);
+    }
+
+    case "EDIT_TODO": {
+      return todos.map((todo) =>
+        todo.id === action.id ? { ...todo, todo: action.value } : todo
+      );
     }
   }
 }
