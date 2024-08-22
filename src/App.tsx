@@ -36,6 +36,10 @@ function App() {
     return dispatch({ type: "EDIT_TODO", id, value: trimmedValue });
   };
 
+  const handleClearingCompleted = () => {
+    return dispatch({ type: "DESTROY_COMPLETED" });
+  };
+
   const todoListProps = {
     todos,
     onCompletedToggle: handleCompletedToggle,
@@ -59,6 +63,9 @@ function App() {
         </form>
       </header>
       <TodosList {...todoListProps} />
+      {todos.length > 0 && (
+        <Footer todos={todos} onClearCompleted={handleClearingCompleted} />
+      )}
     </section>
   );
 }
@@ -117,11 +124,11 @@ function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
 
   const handleEscKey = (event) => {
     if (event.key === "Escape") {
-      setEditing(false)
-      event.target.parentElement.reset()
-      event.target.blur()
+      setEditing(false);
+      event.target.parentElement.reset();
+      event.target.blur();
     }
-  }
+  };
 
   return (
     <li className={clsx({ completed: todo.completed, editing })}>
@@ -147,6 +154,29 @@ function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
         <input type="submit" hidden />
       </form>
     </li>
+  );
+}
+
+function Footer({ todos, onClearCompleted }) {
+  const itemsLeft = todos.reduce((acc, { completed }) => {
+    if (!completed) {
+      return acc + 1;
+    }
+    return acc;
+  }, 0);
+
+  return (
+    <footer className="footer">
+      <span className="todo-count">
+        <strong>{itemsLeft}</strong>{" "}
+        {itemsLeft > 1 ? "items left" : "item left"}
+      </span>
+      {itemsLeft !== todos.length && (
+        <button className="clear-completed" onClick={onClearCompleted}>
+          Clear completed
+        </button>
+      )}
+    </footer>
   );
 }
 
@@ -182,6 +212,10 @@ function reducer(todos, action) {
       return todos.map((todo) =>
         todo.id === action.id ? { ...todo, todo: action.value } : todo
       );
+    }
+
+    case "DESTROY_COMPLETED": {
+      return todos.filter(todo => !todo.completed)
     }
   }
 }
