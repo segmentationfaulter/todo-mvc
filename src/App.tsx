@@ -115,6 +115,14 @@ function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
     onTodoEdit(todo.id, event.target.value);
   };
 
+  const handleEscKey = (event) => {
+    if (event.key === "Escape") {
+      setEditing(false)
+      event.target.parentElement.reset()
+      event.target.blur()
+    }
+  }
+
   return (
     <li className={clsx({ completed: todo.completed, editing })}>
       <div className="view">
@@ -134,6 +142,7 @@ function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
           className="edit"
           defaultValue={todo.todo}
           onBlur={handleBlur}
+          onKeyDown={handleEscKey}
         />
         <input type="submit" hidden />
       </form>
