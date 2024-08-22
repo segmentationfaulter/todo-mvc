@@ -24,8 +24,8 @@ function App() {
     return dispatch({ type: "DESTROY", id });
   };
 
-  const handleTodoEdit = (id) => (event) => {
-    return dispatch({ type: "EDIT_TODO", id, value: event.target.value });
+  const handleTodoEdit = (id, value) => {
+    return dispatch({ type: "EDIT_TODO", id, value });
   };
 
   const todoListProps = {
@@ -96,6 +96,17 @@ function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
     }
   }, [editing]);
 
+  const handleEditing = (event) => {
+    event.preventDefault();
+    setEditing(false);
+    onTodoEdit(todo.id, event.target.elements["edit-todo"].value);
+  };
+
+  const handleBlur = (event) => {
+    setEditing(false);
+    onTodoEdit(todo.id, event.target.value);
+  };
+
   return (
     <li className={clsx({ completed: todo.completed, editing })}>
       <div className="view">
@@ -108,13 +119,16 @@ function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
         <label onDoubleClick={() => setEditing(true)}>{todo.todo}</label>
         <button className="destroy" onClick={() => onDestory(todo.id)}></button>
       </div>
-      <input
-        ref={inputRef}
-        className="edit"
-        value={todo.todo}
-        onChange={onTodoEdit(todo.id)}
-        onBlur={() => setEditing(false)}
-      />
+      <form onSubmit={handleEditing}>
+        <input
+          ref={inputRef}
+          name="edit-todo"
+          className="edit"
+          defaultValue={todo.todo}
+          onBlur={handleBlur}
+        />
+        <input type="submit" hidden />
+      </form>
     </li>
   );
 }
