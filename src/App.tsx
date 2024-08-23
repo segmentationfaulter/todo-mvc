@@ -1,20 +1,8 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { clsx } from "clsx";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 const LOCAL_STORAGE_KEY = "todos-react";
-
-function init(): TODO[] {
-  try {
-    const todosString = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (todosString === null) {
-      return [];
-    }
-    const todos: TODO[] = JSON.parse(todosString);
-    return todos;
-  } catch {
-    return [];
-  }
-}
 
 type TODO = {
   id: string;
@@ -46,11 +34,15 @@ type TodoItemProps = Pick<
 > & { todo: TODO };
 
 function App() {
-  const [todos, dispatch] = useReducer(reducer, null, init);
+  const [todosFromLocalStorage, persisTodos] = useLocalStorage<TODO[]>(
+    LOCAL_STORAGE_KEY,
+    []
+  );
+  const [todos, dispatch] = useReducer(reducer, todosFromLocalStorage);
 
   useEffect(() => {
-    window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
-  }, [todos]);
+    persisTodos(todos);
+  }, [todos, persisTodos]);
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
@@ -81,7 +73,10 @@ function App() {
     return dispatch({ type: "DESTROY", id });
   };
 
-  const handleTodoEdit: TodoListProps["onTodoEdit"] = ({ id, title: value }) => {
+  const handleTodoEdit: TodoListProps["onTodoEdit"] = ({
+    id,
+    title: value,
+  }) => {
     const trimmedValue = value.trim();
     if (trimmedValue === "") {
       return dispatch({ type: "DESTROY", id });
