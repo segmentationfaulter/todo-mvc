@@ -20,9 +20,11 @@ function init() {
 
 function App() {
   const [todos, dispatch] = useReducer(reducer, null, init);
+
   useEffect(() => {
     window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
   }, [todos]);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const value = event.target.elements["new-todo"].value;
