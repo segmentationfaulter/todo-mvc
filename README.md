@@ -1,50 +1,35 @@
-# React + TypeScript + Vite
+# Framework Name • [TodoMVC](http://todomvc.com)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Official description of the framework (from its website)
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Resources
 
-## Expanding the ESLint configuration
+- [Website]()
+- [Documentation]()
+- [Used by]()
+- [Blog]()
+- [FAQ]()
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### Articles
 
-- Configure the top-level `parserOptions` property like this:
+- [Interesting article]()
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### Support
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+- [Stack Overflow](http://stackoverflow.com/questions/tagged/__)
+- [Google Groups]()
+- [Twitter](http://twitter.com/__)
+- [Google+]()
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+*Let us [know](https://github.com/tastejs/todomvc/issues) if you discover anything worth sharing.*
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+
+## Implementation
+
+How was the app created? Anything worth sharing about the process of creating the app? Any spec violations?
+
+
+## Credit
+
+Created by [Your Name](http://your-website.com)
