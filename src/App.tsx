@@ -3,20 +3,47 @@ import { clsx } from "clsx";
 
 const LOCAL_STORAGE_KEY = "todos-react";
 
-function init() {
+function init(): TODO[] {
   try {
     const todosString = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-    const todos = JSON.parse(todosString);
-
-    if (Array.isArray(todos)) {
-      return todos;
-    } else {
+    if (todosString === null) {
       return [];
     }
+    const todos: TODO[] = JSON.parse(todosString);
+    return todos;
   } catch {
     return [];
   }
 }
+
+type TODO = {
+  id: string;
+  title: string;
+  completed: boolean;
+};
+
+type ToDoAction =
+  | { type: "ADD_TODO"; value: TODO["title"] }
+  | { type: "TOGGLE_COMPLETED"; id: TODO["id"] }
+  | { type: "TOGGLE_ALL" }
+  | { type: "DESTROY"; id: TODO["id"] }
+  | { type: "EDIT_TODO"; id: TODO["id"]; value: TODO["title"] }
+  | { type: "DESTROY_COMPLETED" };
+
+type TodoListProps = {
+  todos: TODO[];
+  onCompletedToggle: (
+    id: Pick<TODO, "id">
+  ) => React.ChangeEventHandler<HTMLInputElement>;
+  onToggleAll: () => void;
+  onDestroy: (id: Pick<TODO, "id">) => void;
+  onTodoEdit: (args: Pick<TODO, "id" | "title">) => void;
+};
+
+type TodoItemProps = Pick<
+  TodoListProps,
+  "onCompletedToggle" | "onDestroy" | "onTodoEdit"
+> & { todo: TODO };
 
 function App() {
   const [todos, dispatch] = useReducer(reducer, null, init);
@@ -25,32 +52,36 @@ function App() {
     window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
   }, [todos]);
 
-  const handleSubmit = (event) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
-    const value = event.target.elements["new-todo"].value;
-    const valueTrimmed = value.trim();
-    if (valueTrimmed && valueTrimmed.length > 0) {
+    const form = event.currentTarget;
+    const value = (
+      form.elements.namedItem("new-todo") as HTMLInputElement
+    ).value.trim();
+    if (value && value.length > 0) {
       dispatch({
         type: "ADD_TODO",
-        value: valueTrimmed,
+        value: value,
       });
-      event.target.reset();
+      form.reset();
     }
   };
 
-  const handleCompletedToggle = (id) => () => {
-    return dispatch({ type: "TOGGLE_COMPLETED", id });
-  };
+  const handleCompletedToggle: TodoListProps["onCompletedToggle"] =
+    ({ id }) =>
+    () => {
+      return dispatch({ type: "TOGGLE_COMPLETED", id });
+    };
 
   const handleToggleAll = () => {
     return dispatch({ type: "TOGGLE_ALL" });
   };
 
-  const handleDestroy = (id) => {
+  const handleDestroy: TodoListProps["onDestroy"] = ({ id }) => {
     return dispatch({ type: "DESTROY", id });
   };
 
-  const handleTodoEdit = (id, value) => {
+  const handleTodoEdit: TodoListProps["onTodoEdit"] = ({ id, title: value }) => {
     const trimmedValue = value.trim();
     if (trimmedValue === "") {
       return dispatch({ type: "DESTROY", id });
@@ -62,7 +93,7 @@ function App() {
     return dispatch({ type: "DESTROY_COMPLETED" });
   };
 
-  const todoListProps = {
+  const todoListProps: TodoListProps = {
     todos,
     onCompletedToggle: handleCompletedToggle,
     onToggleAll: handleToggleAll,
@@ -109,7 +140,7 @@ function TodosList({
   onToggleAll,
   onDestroy,
   onTodoEdit,
-}) {
+}: TodoListProps) {
   return (
     <section className="main">
       <input
@@ -125,7 +156,7 @@ function TodosList({
             key={todo.id}
             todo={todo}
             onCompletedToggle={onCompletedToggle}
-            onDestory={onDestroy}
+            onDestroy={onDestroy}
             onTodoEdit={onTodoEdit}
           />
         ))}
@@ -134,32 +165,46 @@ function TodosList({
   );
 }
 
-function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
+function TodoItem({
+  todo,
+  onCompletedToggle,
+  onDestroy,
+  onTodoEdit,
+}: TodoItemProps) {
   const [editing, setEditing] = useState(false);
-  const inputRef = useRef(null);
+  const inputRef: React.Ref<HTMLInputElement> = useRef(null);
 
   useEffect(() => {
-    if (editing) {
+    if (editing && inputRef.current) {
       inputRef.current.focus();
     }
   }, [editing]);
 
-  const handleEditing = (event) => {
+  const handleEditing: React.FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     setEditing(false);
-    onTodoEdit(todo.id, event.target.elements["edit-todo"].value);
+    onTodoEdit({
+      id: todo.id,
+      title: (
+        event.currentTarget.elements.namedItem("edit-todo") as HTMLInputElement
+      ).value,
+    });
   };
 
-  const handleBlur = (event) => {
+  const handleBlur: React.FocusEventHandler<HTMLInputElement> = (event) => {
     setEditing(false);
-    onTodoEdit(todo.id, event.target.value);
+    onTodoEdit({ id: todo.id, title: event.target.value });
   };
 
-  const handleEscKey = (event) => {
+  const handleEscKey: React.KeyboardEventHandler<HTMLInputElement> = (
+    event
+  ) => {
     if (event.key === "Escape") {
       setEditing(false);
-      event.target.parentElement.reset();
-      event.target.blur();
+      const inputElement = event.target as HTMLInputElement;
+      const formElement = inputElement.closest("form");
+      formElement?.reset();
+      inputElement.blur();
     }
   };
 
@@ -170,17 +215,17 @@ function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
           className="toggle"
           type="checkbox"
           checked={todo.completed}
-          onChange={onCompletedToggle(todo.id)}
+          onChange={onCompletedToggle(todo)}
         />
-        <label onDoubleClick={() => setEditing(true)}>{todo.todo}</label>
-        <button className="destroy" onClick={() => onDestory(todo.id)}></button>
+        <label onDoubleClick={() => setEditing(true)}>{todo.title}</label>
+        <button className="destroy" onClick={() => onDestroy(todo)}></button>
       </div>
       <form onSubmit={handleEditing}>
         <input
           ref={inputRef}
           name="edit-todo"
           className="edit"
-          defaultValue={todo.todo}
+          defaultValue={todo.title}
           onBlur={handleBlur}
           onKeyDown={handleEscKey}
         />
@@ -190,7 +235,13 @@ function TodoItem({ todo, onCompletedToggle, onDestory, onTodoEdit }) {
   );
 }
 
-function Footer({ todos, onClearCompleted }) {
+function Footer({
+  todos,
+  onClearCompleted,
+}: {
+  todos: TODO[];
+  onClearCompleted: () => void;
+}) {
   const itemsLeft = todos.reduce((acc, { completed }) => {
     if (!completed) {
       return acc + 1;
@@ -213,14 +264,14 @@ function Footer({ todos, onClearCompleted }) {
   );
 }
 
-function reducer(todos, action) {
+function reducer(todos: TODO[], action: ToDoAction): TODO[] {
   switch (action.type) {
     case "ADD_TODO": {
       return [
         ...todos,
         {
           id: window.crypto.randomUUID(),
-          todo: action.value,
+          title: action.value,
           completed: false,
         },
       ];
@@ -243,12 +294,17 @@ function reducer(todos, action) {
 
     case "EDIT_TODO": {
       return todos.map((todo) =>
-        todo.id === action.id ? { ...todo, todo: action.value } : todo
+        todo.id === action.id ? { ...todo, title: action.value } : todo
       );
     }
 
     case "DESTROY_COMPLETED": {
       return todos.filter((todo) => !todo.completed);
+    }
+
+    default: {
+      const _exhaustiveCheck: never = action;
+      return _exhaustiveCheck;
     }
   }
 }
