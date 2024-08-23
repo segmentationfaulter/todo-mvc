@@ -1,8 +1,28 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { clsx } from "clsx";
 
+const LOCAL_STORAGE_KEY = "todos-react";
+
+function init() {
+  try {
+    const todosString = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+    const todos = JSON.parse(todosString);
+
+    if (Array.isArray(todos)) {
+      return todos;
+    } else {
+      return [];
+    }
+  } catch {
+    return [];
+  }
+}
+
 function App() {
-  const [todos, dispatch] = useReducer(reducer, []);
+  const [todos, dispatch] = useReducer(reducer, null, init);
+  useEffect(() => {
+    window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
+  }, [todos]);
   const handleSubmit = (event) => {
     event.preventDefault();
     const value = event.target.elements["new-todo"].value;
@@ -50,29 +70,33 @@ function App() {
 
   return (
     <>
-    <section className="todoapp">
-      <header className="header">
-        <h1>todos</h1>
-        <form onSubmit={handleSubmit}>
-          <input
-            name="new-todo"
-            className="new-todo"
-            placeholder="What needs to be done?"
-            autoFocus
-          />
-          <input type="submit" hidden />
-        </form>
-      </header>
-      <TodosList {...todoListProps} />
-      {todos.length > 0 && (
-        <Footer todos={todos} onClearCompleted={handleClearingCompleted} />
-      )}
-    </section>
-    <footer className="info">
-			<p>Double-click to edit a todo</p>
-			<p>Created by <a href="http://todomvc.com">Muhammad Saqib</a></p>
-			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
-		</footer>
+      <section className="todoapp">
+        <header className="header">
+          <h1>todos</h1>
+          <form onSubmit={handleSubmit}>
+            <input
+              name="new-todo"
+              className="new-todo"
+              placeholder="What needs to be done?"
+              autoFocus
+            />
+            <input type="submit" hidden />
+          </form>
+        </header>
+        <TodosList {...todoListProps} />
+        {todos.length > 0 && (
+          <Footer todos={todos} onClearCompleted={handleClearingCompleted} />
+        )}
+      </section>
+      <footer className="info">
+        <p>Double-click to edit a todo</p>
+        <p>
+          Created by <a href="http://todomvc.com">Muhammad Saqib</a>
+        </p>
+        <p>
+          Part of <a href="http://todomvc.com">TodoMVC</a>
+        </p>
+      </footer>
     </>
   );
 }
@@ -222,7 +246,7 @@ function reducer(todos, action) {
     }
 
     case "DESTROY_COMPLETED": {
-      return todos.filter(todo => !todo.completed)
+      return todos.filter((todo) => !todo.completed);
     }
   }
 }
